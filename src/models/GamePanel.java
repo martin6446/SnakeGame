@@ -16,7 +16,7 @@ public class GamePanel extends JPanel implements ActionListener {
 	static final int DELAY = 75;
 	final int x[] = new int[GAME_UNITS];
 	final int y[] = new int[GAME_UNITS];
-	int bodyParts = 6;
+	int bodyParts = 3;
 	int appelsEaten;
 	int appelX;
 	int appelY;
@@ -49,12 +49,12 @@ public class GamePanel extends JPanel implements ActionListener {
 	public void draw(Graphics g) {
 
 		if (running) {
-
+			/*
 			// this is a grid
 			for (int i = 0; i < SCREEN_HEIGHT / UNIT_SIZE; i++) {
 				g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
 				g.drawLine(0, i * UNIT_SIZE, SCREEN_WIDTH, i * UNIT_SIZE);
-			}
+			}*/
 
 			g.setColor(Color.red);
 			g.fillOval(appelX, appelY, UNIT_SIZE, UNIT_SIZE);
@@ -69,6 +69,12 @@ public class GamePanel extends JPanel implements ActionListener {
 
 				}
 			}
+			
+			g.setColor(Color.red);
+			g.setFont(new Font("Ink Free", Font.BOLD, 40 ));
+			FontMetrics metrics = getFontMetrics(g.getFont());
+			g.drawString("Score: " + appelsEaten, (SCREEN_WIDTH - metrics.stringWidth("Score: " + appelsEaten))/2, g.getFont().getSize());
+			
 		}else {
 			gameOver(g);
 		}
@@ -118,7 +124,7 @@ public class GamePanel extends JPanel implements ActionListener {
 		}
 
 		// check if head touches left border
-		if (x[0] == 0) {
+		if (x[0] < 0) {
 			running = false;
 		}
 
@@ -134,7 +140,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
 		// check if head touches bottom border
 
-		if (y[0] > SCREEN_HEIGHT) {
+		if (y[0] >= SCREEN_HEIGHT) {
 			running = false;
 		}
 
@@ -145,12 +151,17 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 
 	public void gameOver(Graphics g) {
-		//Game Over Text
+		//display final score
+		g.setColor(Color.red);
+		g.setFont(new Font("Ink Free", Font.BOLD, 40 ));
+		FontMetrics metrics1 = getFontMetrics(g.getFont());
+		g.drawString("Score: " + appelsEaten, (SCREEN_WIDTH - metrics1.stringWidth("Score: " + appelsEaten))/2, g.getFont().getSize());
 		
+		//Game Over Text
 		g.setColor(Color.red);
 		g.setFont(new Font("Bauhaus 93", Font.BOLD, 75 ));
-		FontMetrics metrics = getFontMetrics(g.getFont());
-		g.drawString("Game Over", (SCREEN_WIDTH - metrics.stringWidth("Game Over"))/2, SCREEN_HEIGHT/2);
+		FontMetrics metrics2 = getFontMetrics(g.getFont());
+		g.drawString("Game Over", (SCREEN_WIDTH - metrics2.stringWidth("Game Over"))/2, SCREEN_HEIGHT/2);
 	}
 
 	@Override
