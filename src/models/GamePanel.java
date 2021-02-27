@@ -9,21 +9,17 @@ import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements ActionListener {
 
-	static final int SCREEN_WIDTH = 600;
-	static final int SCREEN_HEIGHT = 600;
-	static final int UNIT_SIZE = 25;
-	static final int GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;
-	static final int DELAY = 75;
-	final int x[] = new int[GAME_UNITS];
-	final int y[] = new int[GAME_UNITS];
-	int bodyParts = 3;
-	int appelsEaten;
+	final int SCREEN_WIDTH = 600;
+	final int SCREEN_HEIGHT = 600;
+	final int UNIT_SIZE = 25;
+	final int GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;
+	final int DELAY = 75;
 	int appelX;
 	int appelY;
-	char direction = 'R';
 	boolean running = false;
 	Timer timer;
 	Random random;
+	Snake snake;
 
 	GamePanel() {
 		random = new Random();
@@ -33,8 +29,16 @@ public class GamePanel extends JPanel implements ActionListener {
 		this.addKeyListener(new MyKeyAdapter());
 		startGame();
 	}
+	
+	public void restart() {
+		snake = new Snake(GAME_UNITS, GAME_UNITS);
+		newAppel();
+		running = true;
+		timer.restart();
+	}
 
 	public void startGame() {
+		snake = new Snake(GAME_UNITS, GAME_UNITS);
 		newAppel();
 		running = true;
 		timer = new Timer(DELAY, this);
@@ -49,33 +53,30 @@ public class GamePanel extends JPanel implements ActionListener {
 	public void draw(Graphics g) {
 
 		if (running) {
-			/*
-			// this is a grid
-			for (int i = 0; i < SCREEN_HEIGHT / UNIT_SIZE; i++) {
-				g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
-				g.drawLine(0, i * UNIT_SIZE, SCREEN_WIDTH, i * UNIT_SIZE);
-			}*/
+			int snakeBody = snake.getBodyParts();
 
 			g.setColor(Color.red);
 			g.fillOval(appelX, appelY, UNIT_SIZE, UNIT_SIZE);
 
-			for (int i = 0; i < bodyParts; i++) {
+			for (int i = 0; i < snakeBody; i++) {
 				if (i == 0) {
 					g.setColor(Color.green);
-					g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+					g.fillRect(snake.getX()[i], snake.getY()[i], UNIT_SIZE, UNIT_SIZE);
 				} else {
 					g.setColor(new Color(143, 187, 153));
-					g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+					g.fillRect(snake.getX()[i], snake.getY()[i], UNIT_SIZE, UNIT_SIZE);
 
 				}
 			}
-			
+
 			g.setColor(Color.red);
-			g.setFont(new Font("Ink Free", Font.BOLD, 40 ));
+			g.setFont(new Font("Ink Free", Font.BOLD, 40));
 			FontMetrics metrics = getFontMetrics(g.getFont());
-			g.drawString("Score: " + appelsEaten, (SCREEN_WIDTH - metrics.stringWidth("Score: " + appelsEaten))/2, g.getFont().getSize());
-			
-		}else {
+			g.drawString("Score: " + snake.getApplesEaten(),
+					(SCREEN_WIDTH - metrics.stringWidth("Score: " + snake.getApplesEaten())) / 2,
+					g.getFont().getSize());
+
+		} else {
 			gameOver(g);
 		}
 	}
@@ -85,92 +86,49 @@ public class GamePanel extends JPanel implements ActionListener {
 		appelY = random.nextInt((int) (SCREEN_HEIGHT / UNIT_SIZE)) * UNIT_SIZE;
 	}
 
-	public void move() {
-		for (int i = bodyParts; i > 0; i--) {
-			x[i] = x[i - 1];
-			y[i] = y[i - 1];
-		}
-
-		switch (direction) {
-		case 'U':
-			y[0] = y[0] - UNIT_SIZE;
-			break;
-		case 'D':
-			y[0] = y[0] + UNIT_SIZE;
-			break;
-		case 'L':
-			x[0] = x[0] - UNIT_SIZE;
-			break;
-		case 'R':
-			x[0] = x[0] + UNIT_SIZE;
-			break;
-		}
-	}
-
 	public void checkAppel() {
-		if ((x[0] == appelX) && (y[0] == appelY)) {
-			bodyParts++;
-			appelsEaten++;
+		if ((snake.getX()[0] == appelX) && (snake.getY()[0] == appelY)) {
+			snake.incrementBodyParts();
+			snake.eatApple();
 			newAppel();
 		}
 	}
 
-	public void checkCollisions() {
-		// checks if head collides with body
-		for (int i = bodyParts; i > 0; i--) {
-			if ((x[0] == x[i]) && (y[0] == y[i])) {
-				running = false;
-			}
-		}
-
-		// check if head touches left border
-		if (x[0] < 0) {
-			running = false;
-		}
-
-		// check if head touches right border
-		if (x[0] > SCREEN_WIDTH) {
-			running = false;
-		}
-
-		// check if head touches top border
-		if (y[0] < 0) {
-			running = false;
-		}
-
-		// check if head touches bottom border
-
-		if (y[0] >= SCREEN_HEIGHT) {
-			running = false;
-		}
-
-		if (!running) {
-			timer.stop();
-		}
-
-	}
-
 	public void gameOver(Graphics g) {
-		//display final score
+		// display final score
 		g.setColor(Color.red);
-		g.setFont(new Font("Ink Free", Font.BOLD, 40 ));
+		g.setFont(new Font("Ink Free", Font.BOLD, 40));
 		FontMetrics metrics1 = getFontMetrics(g.getFont());
-		g.drawString("Score: " + appelsEaten, (SCREEN_WIDTH - metrics1.stringWidth("Score: " + appelsEaten))/2, g.getFont().getSize());
-		
-		//Game Over Text
+		g.drawString("Score: " + snake.getApplesEaten(),
+				(SCREEN_WIDTH - metrics1.stringWidth("Score: " + snake.getApplesEaten())) / 2, g.getFont().getSize());
+
+		// Game Over Text
 		g.setColor(Color.red);
-		g.setFont(new Font("Bauhaus 93", Font.BOLD, 75 ));
+		g.setFont(new Font("Bauhaus 93", Font.BOLD, 75));
 		FontMetrics metrics2 = getFontMetrics(g.getFont());
-		g.drawString("Game Over", (SCREEN_WIDTH - metrics2.stringWidth("Game Over"))/2, SCREEN_HEIGHT/2);
+		g.drawString("Game Over", (SCREEN_WIDTH - metrics2.stringWidth("Game Over")) / 2, SCREEN_HEIGHT / 2);
+		
+		//Restart Text
+		g.setColor(Color.red);
+		g.setFont(new Font(null, Font.BOLD, 30));
+		FontMetrics metrics3 = getFontMetrics(g.getFont());
+		g.drawString("Play Again? Press ENTER", (SCREEN_WIDTH - metrics3.stringWidth("Play Again? Press ENTER")) / 2, SCREEN_HEIGHT - g.getFont().getSize() * 4);
+		
+		//Exit Text
+		g.setColor(Color.red);
+		g.setFont(new Font(null, Font.BOLD, 30));
+		FontMetrics metrics4 = getFontMetrics(g.getFont());
+		g.drawString("Press ESC to exit", (SCREEN_WIDTH - metrics4.stringWidth("Press ESC to exit")) / 2, SCREEN_HEIGHT - g.getFont().getSize() * 2);
+
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 
 		if (running) {
-			move();
+			snake.move(UNIT_SIZE);
 			checkAppel();
-			checkCollisions();
+			running = snake.checkCollisions(SCREEN_WIDTH, SCREEN_HEIGHT);
 		}
 		repaint();
 
@@ -181,27 +139,35 @@ public class GamePanel extends JPanel implements ActionListener {
 		public void keyPressed(KeyEvent e) {
 			switch (e.getKeyCode()) {
 			case KeyEvent.VK_LEFT:
-				if (direction != 'R') {
-					direction = 'L';
+				if (snake.getDirection() != 'R') {
+					snake.setDirection('L');
 				}
 				break;
 			case KeyEvent.VK_RIGHT:
-				if (direction != 'L') {
-					direction = 'R';
+				if (snake.getDirection() != 'L') {
+					snake.setDirection('R');
 				}
 				break;
 			case KeyEvent.VK_UP:
-				if (direction != 'D') {
-					direction = 'U';
+				if (snake.getDirection() != 'D') {
+					snake.setDirection('U');
 				}
 				break;
 			case KeyEvent.VK_DOWN:
-				if (direction != 'U') {
-					direction = 'D';
+				if (snake.getDirection() != 'U') {
+					snake.setDirection('D');
 				}
 				break;
+			case KeyEvent.VK_ENTER:
+				if(!running) {
+					restart();
+				}
+				break;
+			case KeyEvent.VK_ESCAPE:
+				System.exit(0);
 			}
 		}
+
 	}
 
 }
